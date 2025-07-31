@@ -1,0 +1,11 @@
+.venv
+
+.env
+
+*.bat
+
+__pycache__
+
+db.sqlite3
+
+migrations
