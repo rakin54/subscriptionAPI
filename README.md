@@ -1,4 +1,4 @@
-## Subscription Management System
+# Subscription Management System
 
 An API based subscription management system, that is designed to manage plans, subscriptions and viewing Exchange Rates with ExchangeRate-API. A minimal backend application mande with Django Rest Framework (DRF)
 
@@ -47,75 +47,204 @@ python bookishfool/manage.py runserver
 
 ---
 
-## API Authentication
+## Endpoints and Expected outcomes:
 
-I used JWT to authenticate a user. Get a token using the `/api/token/` endpoint (if implemented), or use session login via Django admin.
-
----
-
-## Key Features
-
-### Borrowing Logic (`POST /api/borrow/`)
-
-* A user can borrow a book by providing `book_id`.
-* The system:
-
-  * Ensures the user has **less than 3 active borrows**.
-  * Ensures the book has **available copies**.
-  * Reduces the book’s `available_copies` by 1.
-  * Creates a `Borrow` record with:
-
-    * `borrow_date` = today
-    * `due_date` = 14 days from today
-* All operations are **atomic** to prevent race conditions.
-
-### Returning Logic (`POST /api/return/`)
-
-* A user returns a book by providing `borrow_id`.
-* The system:
-
-  * Sets `return_date` to today.
-  * Increments `available_copies` by 1.
-  * Checks if the return is **late**:
-
-    * If so, calculates how many days late.
-    * Adds **1 penalty point per late day** to the user's profile.
-
-### Penalty Check (`GET /api/users/{id}/penalties/`)
-
-* Shows total accumulated penalty points for a user.
-* Only viewable by the user themself or an admin.
-
----
-
-## Penalty Points Calculation
-
-```python
-late_days = (return_date - due_date).days
-penalty_points += late_days  # 1 point per late day
+### Register a new user
+`POST http://127.0.0.1:8000/api/register/`
+Create a new user
+Example: 
+```JSON
+{
+    "username" : "user2",
+    "email" : "user2@ex.co",
+    "password" : "password"
+}
 ```
 
-Only applied when a book is returned **after** its due date.
+**Output and Status Code**
+- Successful request will return status `201 Created` with message 
+```JSON
+{
+    "message": "User registered successfully!"
+}
+```
 
----
+### Login User
+`POST http://127.0.0.1:8000/api/login/`
 
-## Assumptions & Known Limitations
+This will allow user to Login the system. Successful credentials will generate two tokens. 
+Example: 
+```JSON
+{
+    "username":"user2",
+    "password":"password"
+}
+```
 
-* Timezone handling is simplified using Django defaults (UTC).
-* Borrow and return operations are **atomic**, avoiding race conditions with inventory.
-* **Borrowing back-dates cannot be changed via API**.
-* **No automatic overdue scanning** — penalties are applied only at the time of return.
+**Output & Status Code**
+- Successful login will return status code `200 OK` and will generate two tokens.
+```JSON
+{
+    "refresh": "<refresh_token>",
+    "access": "<access_token>"
+}
+```
 
----
+*Note: for the endpoints that require authentication, `<access_token>` should be used as `Authorization` Header*
 
-## Testing
+The access token will expire after 5 minutes. So, refresh token is needed for generating a new token.
 
-* You can test endpoints using Postman or the Django admin panel.
-* Sample data can be added via Django admin or fixtures.
-* For testing overdue penalties, modify `borrow_date` and `due_date` using:
+### Refresh Token:
+`POST http://127.0.0.1:8000/api/refresh/`
+This will generate a new `<access_token>`. Following is the example:
+```JSON
+{
+  "refresh": "<refresh_token>"
+}
+```
+**Output & Status Code**
+- Successfull response will return status code `200 OK` with a new access token.
+```JSON
+{
+    "access": "<access_token>"
+}
+```
 
-  * Admin panel (if allowed)
-  * Custom API in test mode
-  * Management script (`python manage.py shell`)
+
+### Creates subscribtion
+
+`POST http://127.0.0.1:8000/api/subscribe/`
+
+Create a subscribtion to a plan of the service. User need to be authenticated.
+Sample Input
+
+```JSON
+{
+    "start_date": "2025-6-30",
+    "end_date" : "2025-7-31",
+    "status" : "active",
+    "plan_id" : "2"
+}
+```
+
+*To get successful response, authentication header is required.*
+
+`Authorization : Bearer <access_token>`
+
+- Successful post request will return status code `201 Created` with message of the data created.
+```JSON
+{
+    "id": 2,
+    "start_date": "2025-06-30",
+    "end_date": "2025-07-31",
+    "status": "active",
+    "user": {
+        "id": 3,
+        "username": "user2",
+        "email": "user2@ex.co"
+    },
+    "plan": {
+        "id": 2,
+        "name": "Basic",
+        "price": "3.00",
+        "duration": 30
+    }
+}
+```
+- If authentication credentials not provided, then `401 Unauthorized` and message
+
+```JSON
+{
+    "detail": "Authentication credentials were not provided."
+}
+```
+
+
+Since it's JWT token-based authentication, if Token expires `401 Unauthorized` and message
+
+```JSON
+{
+    "detail": "Given token not valid for any token type",
+    "code": "token_not_valid",
+    "messages": [
+        {
+            "token_class": "AccessToken",
+            "token_type": "access",
+            "message": "Token is expired"
+        }
+    ]
+}
+```
+
+
+### View all Subscribtions
+`GET http://127.0.0.1:8000/api/subscriptions/`
+List all subscribtions of both past and current of the active logged in user.
+This endpoint requires Authorization header like following
+`Authorization: Bearer <access_token>`
+
+**Output & Status Codes**
+- Successful request will return status code `200 OK` with following information if the user is authenticated.
+```JSON
+[
+    {
+        "id": 2,
+        "start_date": "2025-06-30",
+        "end_date": "2025-07-31",
+        "status": "active",
+        "user": {
+            "id": 3,
+            "username": "user2",
+            "email": "user2@ex.co"
+        },
+        "plan": {
+            "id": 2,
+            "name": "Basic",
+            "price": "3.00",
+            "duration": 30
+        }
+    }
+]
+```
+
+- Unauthenticated users will get status `401 Unauthorized`.
+
+
+### Exchange Rate Endpoints:
+`GET http://127.0.0.1:8000/api/exchange-rate/?base=USD&target=BDT`
+
+Get Currency exchange rate information using `ExchangeRate-API`.
+
+**Output & Status Code**
+- Successful Responses get status `200 OK` with following data.
+
+```
+{
+    "base_currency": "USD",
+    "target_currency": "BDT",
+    "fetched_at": "Fri, 01 Aug 2025 00:00:02 +0000",
+    "rate": 122.3321
+}
+```
+
+- Missing Parameter, Invalid paramete or other errors, it will return `500 Internal Server Error` with the error message. As example like following:
+
+```
+  {
+      "error": "'NoneType' object has no attribute 'upper'"
+  }
+```
+
+
+- Longer currency code will return `400 Bad Request` with message
+```
+{
+    "error": "Currency codes must be 3 characters long"
+}
+```
+
+
+
+
 
 

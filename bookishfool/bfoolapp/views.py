@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser, AllowAny, IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
+import json
 from datetime import datetime, timedelta
 import requests
 from bookishfool.settings import API_KEY
@@ -40,6 +41,21 @@ class SubscribtionView(APIView):
                 return Response({'error': 'User is not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class SubscribrionListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            if request.user.is_authenticated:
+                subscriptions = Subscribtion.objects.filter(user=request.user)
+                serializer = SubscribtionSerializer(subscriptions, many=True)
+                return Response(serializer.data)
+            else:
+                return Response({'error': 'User is not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
 class ExchangeRateView(APIView):
@@ -47,15 +63,97 @@ class ExchangeRateView(APIView):
         api_key = API_KEY
         url = f"https://v6.exchangerate-api.com/v6/{api_key}/pair/{base_currency}/{target_currency}"
         response = requests.get(url)
-        data = response.json()
-        return data['data'][target_currency]
+        dataset = response.json()
+        data = {
+            "base_currency": dataset['base_code'],
+            "target_currency": dataset['target_code'],
+            "fetched_at": dataset['time_last_update_utc'],
+            "rate": dataset['conversion_rate']
+        }
+        return data
 
-    def get(self,request):
+    def get(self, request):
         try:
-            exchange_rate = self.get_data("USD", "DBT")
-            return Response({'exchange_rate': exchange_rate})
-        # serializers = ExchangeRateLogSerializer(data=request.data)
+            base_currency = request.query_params.get('base')
+            target_currency = request.query_params.get('target')
 
+            base_currency = base_currency.upper()
+            target_currency = target_currency.upper()
+
+            if not base_currency or not target_currency:
+                return Response(
+                    {'error': 'Both base_currency and target_currency parameters are required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if len(base_currency) != 3 or len(target_currency) != 3:
+                return Response(
+                   {'error': 'Currency codes must be 3 characters long'},
+                   status=status.HTTP_400_BAD_REQUEST
+               )
+
+            data = self.get_data(base_currency, target_currency)
+            # if data:
+            return Response(data,status=status.HTTP_200_OK)
+            # else:
+            #     return Response({'error': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+
+
+# class ExchangeRateView(APIView):
+#     def get_data(self, base_currency, target_currency):
+#         try:
+#             api_key = API_KEY  # Get from Django settings
+#             url = f"https://v6.exchangerate-api.com/v6/{api_key}/pair/{base_currency}/{target_currency}"
+#             response = requests.get(url)
+#             response.raise_for_status()  # Raises HTTPError for bad responses
+            
+#             dataset = response.json()
+            
+#             # Check if API response indicates success
+#             if dataset.get('result') != 'success':
+#                 raise ValueError(dataset.get('error-type', 'API returned unsuccessful response'))
+            
+#             data = {
+#                 "base_currency": dataset['base_code'],
+#                 "target_currency": dataset['target_code'],
+#                 "fetched_at": dataset['time_last_update_utc'],
+#                 "rate": dataset['conversion_rate']
+#             }
+#             return data  # Return dict instead of JSON string
+            
+#         except requests.exceptions.RequestException as e:
+#             raise Exception(f"API request failed: {str(e)}")
+#         except (KeyError, ValueError) as e:
+#             raise Exception(f"Invalid API response: {str(e)}")
+
+#     def get(self, request):
+#         try:
+#             base_currency = request.query_params.get('base')
+#             target_currency = request.query_params.get('target')
+            
+#             # Validate parameters
+#             if not base_currency or not target_currency:
+#                 return Response(
+#                     {'error': 'Both base and target currency parameters are required'},
+#                     status=status.HTTP_400_BAD_REQUEST
+#                 )
+            
+#             if len(base_currency) != 3 or len(target_currency) != 3:
+#                 return Response(
+#                     {'error': 'Currency codes must be 3 characters'},
+#                     status=status.HTTP_400_BAD_REQUEST
+#                 )
+            
+#             # Get and return data
+#             data = self.get_data(base_currency, target_currency)
+#             return Response(data, status=status.HTTP_200_OK)
+            
+#         except Exception as e:
+#             return Response(
+#                 {'error': str(e)},
+#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+#             )
