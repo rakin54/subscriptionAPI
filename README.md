@@ -210,6 +210,52 @@ This endpoint requires Authorization header like following
 - Unauthenticated users will get status `401 Unauthorized`.
 
 
+### Cancel Subscribtion:
+`POST http://127.0.0.1:8000/api/cancel/`
+
+Authentication Header should be passed to execute this endpoint.
+`Authorization : Bearer <auth_token>`
+
+**Output and Status Codes:**
+- Successful request returns `200 OK` with updated data.
+    
+
+``` json
+{
+    "id": 2,
+    "start_date": "2025-06-30",
+    "end_date": "2025-07-31",
+    "status": "cancelled",
+    "user": {
+        "id": 3,
+        "username": "user2",
+        "email": "user2@ex.co"
+    },
+    "plan": {
+        "id": 2,
+        "name": "Basic",
+        "price": "3.00",
+        "duration": 30
+    }
+}
+
+ ```
+
+This is the data of the cancelled subscribtion.
+
+- If **No active subscribtion** found, then it will return `400 Bad Request` with message
+    
+
+``` json
+{
+    "error" : "No Active Subscribtion Found!"
+}
+
+ ```
+
+- For any other kind of error, it'll return `500 INTERNAL SERVER ERROR` with the error message.
+
+
 ### Exchange Rate Endpoints:
 `GET http://127.0.0.1:8000/api/exchange-rate/?base=USD&target=BDT`
 

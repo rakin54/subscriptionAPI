@@ -56,6 +56,30 @@ class SubscribrionListView(APIView):
                 return Response({'error': 'User is not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class CancelSubscribtionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            if request.user.is_authenticated:
+                
+                subscription = Subscribtion.objects.get(status="active", user=request.user)
+                subscription.status = "cancelled"
+                subscription.save()
+                serializer = SubscribtionSerializer(subscription)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+                
+            else:
+                return Response({'error': 'User is not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+        except Subscribtion.DoesNotExist:
+            return Response({'error': 'No Active Subscribtion Found!'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
 class ExchangeRateView(APIView):
