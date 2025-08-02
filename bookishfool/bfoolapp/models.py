@@ -14,9 +14,19 @@ class Plan(models.Model):
 class Subscribtion(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     plan = models.ForeignKey(Plan, on_delete=models.CASCADE)
-    start_date = models.DateField()
+    start_date = models.DateField(auto_now_add=True)
     end_date = models.DateField()
-    status = models.CharField(max_length=20, choices=[('active', 'Active'), ('cancelled', 'Cancelled'), ('expired', 'Expired')])
+    status = models.CharField(max_length=20, choices=[('active', 'Active'), ('cancelled', 'Cancelled'), ('expired', 'Expired')], default='active')
+
+    def save(self, *args, **kwargs):
+        if not self.end_date and self.plan_id:
+            self.end_date = self.start_date + timedelta(days=self.plan.duration)
+        
+        # Auto-update status if end_date passed
+        if self.end_date and timezone.now().date() > self.end_date:
+            self.status = 'expired'
+            
+        super().save(*args, **kwargs)
 
 
 class ExchangeRateLog(models.Model):

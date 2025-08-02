@@ -54,10 +54,11 @@ class SubscribtionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'start_date', 'end_date', 'status', 'user', 'plan', 'plan_id'
         ]
-
+        read_only_fields = ['start_date', 'end_date', 'status', 'user']
     def create(self, validated_data):
-        # Automatically set the user from the request context
         validated_data['user'] = self.context['request'].user
+        validated_data['start_date'] = timezone.now().date()  
+        validated_data['status'] = 'active' 
         return super().create(validated_data)
 
 

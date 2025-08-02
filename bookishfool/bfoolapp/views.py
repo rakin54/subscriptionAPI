@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser, AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 import json
 from datetime import datetime, timedelta
@@ -11,6 +11,13 @@ from bookishfool.settings import API_KEY
 from .serializers import *
 from .models import *
 # Create your views here.
+
+
+def index(request):
+    subscribtions = Subscribtion.objects.all().order_by('-id')
+    return render(request, 'index.html',{
+        "subscribtions": subscribtions
+    })
 
 
 class RegisterView(APIView):
@@ -124,60 +131,3 @@ class ExchangeRateView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-
-
-# class ExchangeRateView(APIView):
-#     def get_data(self, base_currency, target_currency):
-#         try:
-#             api_key = API_KEY  # Get from Django settings
-#             url = f"https://v6.exchangerate-api.com/v6/{api_key}/pair/{base_currency}/{target_currency}"
-#             response = requests.get(url)
-#             response.raise_for_status()  # Raises HTTPError for bad responses
-            
-#             dataset = response.json()
-            
-#             # Check if API response indicates success
-#             if dataset.get('result') != 'success':
-#                 raise ValueError(dataset.get('error-type', 'API returned unsuccessful response'))
-            
-#             data = {
-#                 "base_currency": dataset['base_code'],
-#                 "target_currency": dataset['target_code'],
-#                 "fetched_at": dataset['time_last_update_utc'],
-#                 "rate": dataset['conversion_rate']
-#             }
-#             return data  # Return dict instead of JSON string
-            
-#         except requests.exceptions.RequestException as e:
-#             raise Exception(f"API request failed: {str(e)}")
-#         except (KeyError, ValueError) as e:
-#             raise Exception(f"Invalid API response: {str(e)}")
-
-#     def get(self, request):
-#         try:
-#             base_currency = request.query_params.get('base')
-#             target_currency = request.query_params.get('target')
-            
-#             # Validate parameters
-#             if not base_currency or not target_currency:
-#                 return Response(
-#                     {'error': 'Both base and target currency parameters are required'},
-#                     status=status.HTTP_400_BAD_REQUEST
-#                 )
-            
-#             if len(base_currency) != 3 or len(target_currency) != 3:
-#                 return Response(
-#                     {'error': 'Currency codes must be 3 characters'},
-#                     status=status.HTTP_400_BAD_REQUEST
-#                 )
-            
-#             # Get and return data
-#             data = self.get_data(base_currency, target_currency)
-#             return Response(data, status=status.HTTP_200_OK)
-            
-#         except Exception as e:
-#             return Response(
-#                 {'error': str(e)},
-#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
-#             )

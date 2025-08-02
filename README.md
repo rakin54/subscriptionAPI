@@ -47,6 +47,12 @@ python bookishfool/manage.py runserver
 
 ---
 
+Successful Run of the server will redirect to homepage and user should see this page shown on the screenshot.
+
+![Screenshot](assets\Screenshot.png)
+
+---
+
 ## Endpoints and Expected outcomes:
 
 ### Register a new user
@@ -111,7 +117,7 @@ This will generate a new `<access_token>`. Following is the example:
 ```
 
 
-### Creates subscribtion
+### Creates subscription
 
 `POST http://127.0.0.1:8000/api/subscribe/`
 
@@ -120,12 +126,11 @@ Sample Input
 
 ```JSON
 {
-    "start_date": "2025-6-30",
-    "end_date" : "2025-7-31",
-    "status" : "active",
     "plan_id" : "2"
 }
 ```
+
+This will autometically set `start_date` to current date and `end_date` date to `start_date + Plan.duration` and status to *active*. After the `end_date` the status will autometically be set to *expired*.
 
 *To get successful response, authentication header is required.*
 
