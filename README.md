@@ -49,7 +49,7 @@ python bookishfool/manage.py runserver
 
 Successful Run of the server will redirect to homepage and user should see this page shown on the screenshot.
 
-![Screenshot](assets\Screenshot.png)
+![Screenshot](assets/Screenshot.png)
 
 ---
 
