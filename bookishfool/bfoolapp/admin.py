@@ -15,6 +15,15 @@ class SubscribtionAdmin(admin.ModelAdmin):
     search_fields = ['user','plan']
     list_filter = ['status']
 
+    def has_add_permission(self, request):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
 
 
 @admin.register(ExchangeRateLog)
@@ -23,3 +32,11 @@ class ExchangeRateLogAdmin(admin.ModelAdmin):
     list_filter = ['fetched_at']
     search_fields = ['base_currency', 'target_currency', 'fetched_at', 'rate']
 
+    def has_add_permission(self, request):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

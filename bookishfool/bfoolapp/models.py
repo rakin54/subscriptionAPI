@@ -10,6 +10,9 @@ class Plan(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Price (USD)')
     duration = models.PositiveIntegerField(null=True, blank=True, verbose_name='Duration (Days)')
 
+    def __str__(self):
+        return self.name
+
 
 class Subscribtion(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
