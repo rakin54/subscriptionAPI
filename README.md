@@ -47,7 +47,9 @@ python bookishfool/manage.py runserver
 
 ---
 
-Successful Run of the server will redirect to homepage and user should see this page shown on the screenshot.
+## Overview
+If the server runs successfully, type `http://127.0.0.1:8000/subscriptions/` in the address bar. It should show the interface bellow. If you have no data stored in database, it'll display "No subscrptions found" instead of data. This page served by `render()` method. Frontend - Bootstrap 4.
+
 
 ![Screenshot](assets/Screenshot.png)
 

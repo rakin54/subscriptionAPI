@@ -13,7 +13,7 @@ from .models import *
 # Create your views here.
 
 
-def index(request):
+def subscriptions(request):
     subscribtions = Subscribtion.objects.all().order_by('-id')
     return render(request, 'index.html',{
         "subscribtions": subscribtions
