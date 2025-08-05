@@ -4,7 +4,7 @@ An API based subscription management system, that is designed to manage plans, s
 
 ---
 
-## Setup Instructions
+## Setup Instructions (Local)
 
 ### 1. Clone the Repository
 
@@ -296,8 +296,47 @@ Get Currency exchange rate information using `ExchangeRate-API`.
 }
 ```
 
+---
+
+## Admin Panel and Stuff Members:
+
+To access admin panel, type this address on browser tad: `http://127.0.0.1:8000/admin/`
+
+For loing to the admin page, create a superuser with following command.
+
+```bash
+python bookishfool/manage.py createsuperuser
+```
+
+It will ask for username, email and password. Successful login with credentials, you will be able to login as a superuser. You can add, delete and modify plans via Django admin. This panel can't help you to modify subscribtions and exchange rate logs, only allow you to view them.
+
+## Docker and Celery run:
+Due to lack of hardware and software resources, I could not do these steps properly. I tried to work on but couldn't test them if they work or not. So, this step may not work optimally.
+
+However, I tried to run celery on docker container. I used redis as backend and celery broker and MySQL database in containerized setup. Following are the Docker setup instruction.
+
+Migrate database if needed with 
+```bash
+docker-compose run app python bookishfool/manage.py makemigrations
+```
+And apply migrations with
+```bash
+docker-compose run app python bookishfool/manage.py migrate
+```
+
+Finally run the application in dockerized environment with `docker-compose up --build` command. Celery will run in background if the compose command is up. So, to run the application in Docker container,
+
+```bash
+docker-compose up --build
+```
+
+or `docker-compose up --build -d` to run on detached mode.
 
 
 
+**I spent 13 hours and 20 mins on this project.**
 
-
+**What I have learned from this project:**
+- Customizing admin panel permission with `admin.py` file.
+- Integrating third party API with django.
+- Handling multiple databases.

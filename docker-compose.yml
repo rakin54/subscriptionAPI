@@ -1,0 +1,58 @@
+version: '3.11'
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ratedb
+      MYSQL_USER: mysql_user
+      MYSQL_PASSWORD: mysqlpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  app:
+    build: .
+    command: python bookishfool/manage.py runserver 0.0.0.0:8000
+    environment:
+      - DATABASE_URL=mysql://mysql_user:mysqlpassword@mysql:3306/ratedb
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+      - redis
+
+  celery-worker:
+    build: .
+    command: celery -A your_project worker --loglevel=info
+    environment:
+      - DATABASE_URL=mysql://youruser:yourpassword@mysql:3306/yourdb
+    volumes:
+      - .:/app
+    depends_on:
+      - mysql
+      - redis
+
+  celery-beat:
+    build: .
+    command: celery -A your_project beat --loglevel=info
+    environment:
+      - DATABASE_URL=mysql://youruser:yourpassword@mysql:3306/yourdb
+    volumes:
+      - .:/app
+    depends_on:
+      - mysql
+      - redis
+
+volumes:
+  mysql_data:
+  redis_data:

@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from celery.schedules import crontab
 
 load_dotenv()
 
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_celery_results'
 ]
 
 MIDDLEWARE = [
@@ -85,6 +87,12 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    },
+    'docker' : {
+        "NAME": "ratedb",
+        "ENGINE": "django.db.backends.mysql",
+        "USER": "mysql_user",
+        "PASSWORD": "mysqlpassword",
     }
 }
 
@@ -146,3 +154,20 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0' 
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'  
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+CELERY_BEAT_SCHEDULE = {
+    'fetch-rates-daily': {
+        'task': 'your_app.tasks.fetch_exchange_rates',
+        'schedule': crontab(minute=0), 
+        'options': {
+            'expires': 30,  # Cancel if not run within 30 seconds
+        },
+    },
+}
