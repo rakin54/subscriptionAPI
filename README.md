@@ -334,7 +334,7 @@ or `docker-compose up --build -d` to run on detached mode.
 
 
 
-**I spent 13 hours and 20 mins on this project.**
+**I spent 13 hours and 20 mins on this project (including bug and error handling). Including thinking time around 14 - 15 hours(Assumption)**
 
 **What I have learned from this project:**
 - Customizing admin panel permission with `admin.py` file.
