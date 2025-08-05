@@ -45,6 +45,8 @@ python bookishfool/manage.py createsuperuser
 python bookishfool/manage.py runserver
 ```
 
+Make sure to create a `.env` file where you should insert your `API_KEY`. Please check `.env.example` for a sample `.env` file and replace `<your_api_key>` variable with your API Key.
+
 ---
 
 ## Overview
